@@ -1,5 +1,7 @@
 # 虚拟仿真实验室
 
+A virtual simulation laboratory designed for teaching mechanics of materials.
+
 面向材料力学课堂的 Python 离线桌面实验室，包含**拉伸、压缩、扭转、弯曲、剪切、压杆失稳**六类实验。支持**圆形和矩形截面**、**Fe 和 Al**两组教学材料参数，内置 **24 份标准试样记录**，也可手动输入尺寸重新计算。
 
 ![实验室界面](界面预览.png)
