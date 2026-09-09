@@ -1,0 +1,18 @@
+VSVersionInfo(
+  ffi=FixedFileInfo(filevers=(2, 0, 0, 0), prodvers=(2, 0, 0, 0),
+                   mask=0x3f, flags=0x0, OS=0x40004,
+                   fileType=0x1, subtype=0x0, date=(0, 0)),
+  kids=[
+    StringFileInfo([
+      StringTable('080404b0', [
+        StringStruct('FileDescription', '力学虚拟实验室：六类材料力学实验'),
+        StringStruct('FileVersion', '2.0.0.0'),
+        StringStruct('InternalName', 'TensileLab'),
+        StringStruct('OriginalFilename', 'TensileLab.exe'),
+        StringStruct('ProductName', '力学虚拟实验室'),
+        StringStruct('ProductVersion', '2.0.0')
+      ])
+    ]),
+    VarFileInfo([VarStruct('Translation', [2052, 1200])])
+  ]
+)

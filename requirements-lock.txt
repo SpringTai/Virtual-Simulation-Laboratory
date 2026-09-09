@@ -1,0 +1,16 @@
+# CPython 3.12 / Windows x64; all dependencies are cached in offline_packages.
+PySide6_Essentials==6.9.3
+altgraph==0.17.4
+felupe==11.0.0
+llvmlite==0.44.0
+numba==0.61.2
+numpy==2.2.6
+packaging==25.0
+pefile==2023.2.7
+pyinstaller==6.16.0
+pyinstaller-hooks-contrib==2025.9
+pyqtgraph==0.13.7
+pywin32-ctypes==0.2.3
+scipy==1.15.3
+setuptools==80.9.0
+shiboken6==6.9.3

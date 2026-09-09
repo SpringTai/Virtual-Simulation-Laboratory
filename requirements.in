@@ -1,0 +1,16 @@
+# Windows x64 / CPython 3.12. The complete transitive lock is requirements-lock.txt.
+numpy==2.2.6
+scipy==1.15.3
+numba==0.61.2
+felupe==11.0.0
+PySide6-Essentials==6.9.3
+shiboken6==6.9.3
+pyqtgraph==0.13.7
+pyinstaller==6.16.0
+# Pin build helpers to a tested generation alongside PyInstaller.
+pyinstaller-hooks-contrib==2025.9
+setuptools==80.9.0
+packaging==25.0
+altgraph==0.17.4
+pefile==2023.2.7
+pywin32-ctypes==0.2.3

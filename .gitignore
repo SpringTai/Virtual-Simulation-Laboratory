@@ -1,0 +1,23 @@
+# Local environments and generated output
+.venv*/
+venv/
+__pycache__/
+*.py[cod]
+*.nbc
+*.nbi
+.pytest_cache/
+build/
+dist*/
+release*/
+offline_packages/
+verification-output/
+backups/
+github-publish/
+*.zip
+*.log
+.env
+.env.*
+!.env.example
+# Only the accepted examples are versioned
+*.npz
+!examples/*.npz
