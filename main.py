@@ -14,7 +14,7 @@ def main():
     from PySide6.QtGui import QFont, QFontDatabase, QIcon
     app = QApplication(sys.argv)
     app.setApplicationName("虚拟仿真实验室")
-    app.setOrganizationName("MechanicsVirtualLab")
+    app.setOrganizationName("云南数美汇云软件有限公司")
     if not QFontDatabase.families():
         font_directory = Path(os.environ.get("WINDIR", "C:/Windows")) / "Fonts"
         for name in ("msyh.ttc", "msyhbd.ttc", "arial.ttf"):
@@ -23,7 +23,7 @@ def main():
                 QFontDatabase.addApplicationFont(str(font_file))
     app.setFont(QFont("Microsoft YaHei", 10))
     resource_root = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
-    icon_path = resource_root / "assets" / "logo.jpeg"
+    icon_path = resource_root / "assets" / "lab.png"
     if icon_path.is_file():
         app.setWindowIcon(QIcon(str(icon_path)))
     try:

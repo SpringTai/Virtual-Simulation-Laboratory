@@ -1,8 +1,16 @@
 # -*- mode: python ; coding: utf-8 -*-
 from pathlib import Path
+import struct
 from PyInstaller.utils.hooks import copy_metadata
+from PyInstaller.config import CONF
 
 root = Path(SPECPATH)
+# Windows ICO can embed a 256px PNG directly; no image conversion dependency.
+icon_png = (root / 'assets' / 'lab.png').read_bytes()
+assert icon_png[:8] == b'\x89PNG\r\n\x1a\n' and struct.unpack('>II', icon_png[16:24]) == (256, 256)
+icon_file = Path(CONF['workpath']) / 'lab-neutral.ico'
+icon_file.parent.mkdir(parents=True, exist_ok=True)
+icon_file.write_bytes(struct.pack('<HHH', 0, 1, 1) + struct.pack('<BBBBHHII', 0, 0, 0, 0, 1, 32, len(icon_png), 22) + icon_png)
 datas = []
 for package in ('numpy', 'scipy', 'numba', 'llvmlite', 'felupe', 'PySide6-Essentials', 'shiboken6', 'pyqtgraph'):
     datas += copy_metadata(package)
@@ -46,7 +54,7 @@ exe = EXE(
     [],
     exclude_binaries=True,
     name='TensileLab',
-    icon=str(root / 'assets' / 'lab.ico') if (root / 'assets' / 'lab.ico').is_file() else None,
+    icon=str(icon_file),
     version=str(root / 'packaging' / 'version_info.txt'),
     debug=False,
     bootloader_ignore_signals=False,

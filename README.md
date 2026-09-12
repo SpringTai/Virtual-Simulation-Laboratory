@@ -1,5 +1,9 @@
 # 虚拟仿真实验室 · 2.1
 
+公司：**云南数美汇云软件有限公司** · [公司官网](https://ynsmhy.com/)
+
+当前版本：2.1.1。
+
 A virtual simulation laboratory designed for teaching mechanics of materials, with a Python desktop platform and a C++ finite-element core.
 
 面向材料力学课堂的 Windows 离线桌面程序，包含拉伸、压缩、扭转、弯曲、剪切、压杆失稳六类实验。支持圆形/矩形截面、Fe/Al 教学材料和24份标准试样记录，也可手动输入尺寸重新计算。
@@ -65,4 +69,4 @@ powershell -NoProfile -ExecutionPolicy Bypass -File build.ps1
 
 圆棒轴向核心保留 Numba 大变形轴对称有限元；矩形轴向为非线性杆单元；扭转、弯曲采用杆梁模型，剪切采用均匀剪切模型，压杆失稳采用梁几何刚度特征值与临界前缺陷响应。Fe/Al为教学代表参数。具体假设与限制见[模型与数据说明](模型与数据说明.md)。
 
-详细信息：[使用说明](使用说明.txt) · [2.1改造说明](改造说明-v2.1.md) · [验收记录](验收记录-v2.1.md)。Logo采用项目提供的宏辰教育图像。
+详细信息：[使用说明](使用说明.txt) · [2.1改造说明](改造说明-v2.1.md) · [验收记录](验收记录-v2.1.md)。程序使用力学实验图标。

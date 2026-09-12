@@ -26,6 +26,11 @@ try {
         Copy-Item -LiteralPath (Join-Path $projectRoot "packaging/$filename") -Destination $releaseRoot -Force
     }
     Copy-Item -LiteralPath (Join-Path $projectRoot 'dist-v2.1/TensileLab') -Destination $releaseRoot -Recurse -Force
+    # Copy-Item merges folders; remove explicitly retired branding from earlier bundles.
+    foreach ($obsolete in @('TensileLab/_internal/assets/logo.jpeg', 'TensileLab/_internal/assets/lab.ico')) {
+        $obsoletePath = Join-Path $releaseRoot $obsolete
+        if (Test-Path -LiteralPath $obsoletePath -PathType Leaf) { Remove-Item -LiteralPath $obsoletePath -Force }
+    }
     if (-not $SkipArchive) {
         $archive = Join-Path $projectRoot 'MechanicsVirtualLab-v2.1-Windows-x64-offline.zip'
         Compress-Archive -LiteralPath @((Join-Path $releaseRoot 'TensileLab'), (Join-Path $releaseRoot 'install.ps1'), (Join-Path $releaseRoot 'install.cmd'), (Join-Path $releaseRoot 'uninstall.ps1'), (Join-Path $releaseRoot 'INSTALL-README.txt')) -DestinationPath $archive -Force
