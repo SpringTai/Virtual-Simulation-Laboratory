@@ -1,81 +1,68 @@
-# 虚拟仿真实验室
+# 虚拟仿真实验室 · 2.1
 
-A virtual simulation laboratory designed for teaching mechanics of materials.
+A virtual simulation laboratory designed for teaching mechanics of materials, with a Python desktop platform and a C++ finite-element core.
 
-面向材料力学课堂的 Python 离线桌面实验室，包含**拉伸、压缩、扭转、弯曲、剪切、压杆失稳**六类实验。支持**圆形和矩形截面**、**Fe 和 Al**两组教学材料参数，内置 **24 份标准试样记录**，也可手动输入尺寸重新计算。
-
-![实验室界面](界面预览.png)
+面向材料力学课堂的 Windows 离线桌面程序，包含拉伸、压缩、扭转、弯曲、剪切、压杆失稳六类实验。支持圆形/矩形截面、Fe/Al 教学材料和24份标准试样记录，也可手动输入尺寸重新计算。
 
 ## 下载与安装
 
-普通课堂使用请到 [Releases 下载区](https://github.com/SpringTai/Virtual-Simulation-Laboratory/releases/latest) 下载 **MechanicsVirtualLab-v2-Windows-x64-offline.zip**。
+从 [最新发布页](https://github.com/SpringTai/Virtual-Simulation-Laboratory/releases/latest) 下载 **MechanicsVirtualLab-v2.1-Windows-x64-offline.zip**，完整解压后双击 `install.cmd`，选择安装位置。也可直接运行解压目录中的 `TensileLab/TensileLab.exe`。
 
-1. 完整解压 ZIP。
-2. 打开解压后的文件夹，双击 `install.cmd`。
-3. 安装完成后，双击桌面“力学虚拟实验室”快捷方式。
+安装包自带运行环境，不需要另装 Python、C++ 编译器或联网。升级前请关闭程序。GitHub 自动生成的 Source code 压缩包只包含源码，课堂使用请选择上述 Windows 离线安装包。
 
-安装包自带运行环境和标准实验记录，安装与运行均可离线，不需要另行安装 Python。安装包为 Windows 64 位版本，已在 Windows 11 上验证。升级前先关闭正在运行的实验室。
+## 本版更新
 
-详细步骤见 [使用说明.txt](使用说明.txt)。GitHub 自动提供的 **Source code** 压缩包是源码，课堂直接使用请选择上述带 `Windows-x64-offline` 的安装包。
+- Python 负责界面、实验调度和数据处理；C++ 承担矩形轴向时间步、材料更新及部分结构矩阵组装。
+- “写实示意 / 网格云图”可即时切换。不同实验使用各自标准试样的真实长径比：压杆失稳为60∶1细长杆，压缩为2∶1短粗试样。同类实验调整尺寸时仍共用其参考动画。
+- 写实模式加入金属表面、颈缩、裂纹、褶皱等教学视觉细节；网格模式保留真实计算位移和场值。
+- 安装目录可选，更新与卸载保留用户自行导出的数据。
+- 已移除旧版文件、原型数据及旧说明。未增加混凝土或土力学实验。
 
-## 课堂使用
+![压杆失稳写实示意](assets/preview-buckling.png)
 
-- 在顶部切换六类实验，左侧选择材料、截面与尺寸方案。
-- 选择“标准试样（预计算）”后直接播放，可暂停、单步或拖动回放滑块。
-- 选择“手动尺寸”，输入长度及直径或宽、高，点击“开始计算”或“重新计算”。
-- 动画区显示试样、受力与约束；变形放大倍数明确标注，曲线和导出数据始终保留实际数值。
-- 点击“导出数据”保存曲线 CSV、场结果 CSV、曲线 PNG、参数 JSON 与完整回放 NPZ；“打开记录”可重新回放。
+![压缩写实示意](assets/preview-compression.png)
 
-| 实验 | 曲线 | 计算模型 |
-| --- | --- | --- |
-| 拉伸 | 工程应力—工程应变 | 圆棒：轴对称大变形实体有限元；矩形：非线性杆单元，可展示局部变细与断裂 |
-| 压缩 | 工程应力—工程应变 | 圆棒轴对称实体／矩形杆单元，无摩擦端部加载、横向自由膨胀 |
-| 扭转 | 扭矩—转角 | Saint-Venant 扭转杆有限元，圆／矩形采用对应扭转常数 |
-| 弯曲 | 载荷—跨中挠度 | 简支梁跨中集中载荷，Euler–Bernoulli 梁有限元 |
-| 剪切 | 剪应力—剪应变 | 受约束均匀直接剪切单元 |
-| 压杆失稳 | 轴压力—侧向挠度 | 梁几何刚度特征值与初始缺陷的临界前响应，矩形取弱轴 |
-
-Fe、Al 是教学代表参数。矩形轴向模型不解析三维颈部应力；扭转、弯曲和剪切目前计算弹性阶段，失稳不预测屈曲后的承载过程。详细假设和参考资料见 [模型与数据说明](模型与数据说明.md)。
-
-![压杆失稳](压杆失稳界面预览.png)
+写实动画是2.5D教学示意，裂纹和褶皱不是数值预测；曲线和读数始终来自实际计算。当前矩形轴向小模型已有 Numba 加速，本轮 C++ 实现尚未整体超过 Numba，不宣称全程序提速。
 
 ## 从源码运行
 
-开发环境使用 **CPython 3.12、Windows x64**。在仓库目录中执行：
+使用 Windows x64、CPython 3.12。在仓库目录执行：
 
 ```powershell
-py -3.12 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements-lock.txt
-.\.venv\Scripts\python.exe main.py
+py -3.12 -m venv .venv-dev
+.\.venv-dev\Scripts\python.exe -m pip install -r requirements-lock.txt
+.\.venv-dev\Scripts\python.exe -m pip install -r requirements-build.txt
+.\.venv-dev\Scripts\python.exe native/build.py
+.\.venv-dev\Scripts\python.exe main.py
 ```
 
-首次安装源码依赖需要联网。若需提前准备离线依赖：
+`native/build.py` 使用固定版本的 Zig/Clang 在 Windows 编译 C++ DLL。源码仓库不包含本机虚拟环境、编译缓存或大型安装包。需要提前准备离线构建依赖时：
 
 ```powershell
-.\.venv\Scripts\python.exe -m pip download -r requirements-lock.txt -d offline_packages
+.\.venv-dev\Scripts\python.exe -m pip download -r requirements-lock.txt -r requirements-build.txt -d offline_packages
 ```
 
-`offline_packages` 与本机虚拟环境不提交到仓库。离线重建环境可使用 `rebuild_offline.ps1`；运行已发布的安装包不需要这些步骤。
-
-## 验证与打包
+## 验证与构建
 
 ```powershell
-.\.venv\Scripts\python.exe main.py --self-test verification-output/selftest/report.json
-.\.venv\Scripts\python.exe tests/verify_structural.py
-.\.venv\Scripts\python.exe tests/review_structural_physics.py
+.\.venv-dev\Scripts\python.exe tests/verify_native.py
+.\.venv-dev\Scripts\python.exe tests/verify_structural.py
+.\.venv-dev\Scripts\python.exe tests/verify_visual_styles.py
+.\.venv-dev\Scripts\python.exe main.py --self-test verification-output/v2.1/source/report.json
 powershell -NoProfile -ExecutionPolicy Bypass -File build.ps1
 ```
 
-自检覆盖24份标准记录回放、12组重新计算、CSV／PNG导出和NPZ数组往返。打包产物位于 `dist-v2`、`release-v2`，最终安装ZIP在仓库根目录；这些生成文件已由 `.gitignore` 排除。验证摘要见 [验收记录](验收记录.md)。
+原生回归覆盖16组后端比较；桌面自检覆盖24份回放、12组重算和CSV/PNG/NPZ导出；两种显示风格覆盖72个界面状态。当前发布物输出到 `release-v2.1` 和根目录的2.1离线 ZIP。
 
-## 项目结构
+## 模块与适用范围
 
-- `tensile_lab/`：界面、统一实验入口、计算模型、数据记录和导出。
-- `examples/`：24份标准实验记录及兼容的初版拉伸记录。
-- `assets/`：界面Logo与程序图标。
-- `packaging/`：安装、卸载及打包辅助程序。
-- `tests/`：结构模型的解析对照与独立数值核对。
-- `示例_读取实验数据.py`：使用Python标准库读取导出数据的课堂示例。
-- `third_party_licenses/`：随附依赖的许可证与声明。
+- `tensile_lab/`：Python 平台、统一计算入口、数据记录与界面。
+- `native/`：C++ 核心及编译入口；通过版本化 C ABI 连接 NumPy 缓冲区。
+- `examples/`：24份当前标准试样记录。
+- `packaging/`：安装、卸载及构建辅助脚本。
+- `tests/`：数值、可视化和发布验证。
+- `third_party_licenses/`：依赖许可声明。
 
-Logo 采用项目提供的宏辰教育图像。
+圆棒轴向核心保留 Numba 大变形轴对称有限元；矩形轴向为非线性杆单元；扭转、弯曲采用杆梁模型，剪切采用均匀剪切模型，压杆失稳采用梁几何刚度特征值与临界前缺陷响应。Fe/Al为教学代表参数。具体假设与限制见[模型与数据说明](模型与数据说明.md)。
+
+详细信息：[使用说明](使用说明.txt) · [2.1改造说明](改造说明-v2.1.md) · [验收记录](验收记录-v2.1.md)。Logo采用项目提供的宏辰教育图像。

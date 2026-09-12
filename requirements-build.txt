@@ -1,0 +1,2 @@
+# Compiler only; installed into .venv-dev, not required by the packaged app.
+ziglang==0.13.0

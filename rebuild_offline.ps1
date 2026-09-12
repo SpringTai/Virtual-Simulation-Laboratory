@@ -9,7 +9,7 @@ $lockFile = Join-Path $projectRoot 'requirements-lock.txt'
 if (-not (Test-Path -LiteralPath $lockFile)) { throw 'Missing requirements-lock.txt.' }
 if (-not (Test-Path -LiteralPath $wheelDirectory)) { throw 'Missing offline_packages.' }
 if ([string]::IsNullOrWhiteSpace($Python)) {
-    $candidate = Join-Path $projectRoot '.venv/Scripts/python.exe'
+    $candidate = Join-Path $projectRoot '.venv-dev/Scripts/python.exe'
     if (Test-Path -LiteralPath $candidate) { $Python = $candidate }
     else { throw 'Pass -Python with a CPython 3.12 x64 executable. The installed desktop application does not require Python.' }
 }
@@ -24,6 +24,8 @@ if ($LASTEXITCODE -ne 0) { throw 'Could not create the environment.' }
 $environmentPython = Join-Path $environmentPath 'Scripts/python.exe'
 & $environmentPython -m pip install --no-index --find-links $wheelDirectory -r $lockFile
 if ($LASTEXITCODE -ne 0) { throw 'Offline dependency installation failed.' }
+& $environmentPython -m pip install --no-index --find-links $wheelDirectory -r (Join-Path $projectRoot 'requirements-build.txt')
+if ($LASTEXITCODE -ne 0) { throw 'Offline compiler installation failed.' }
 & $environmentPython -m pip check
 if ($LASTEXITCODE -ne 0) { throw 'Dependency consistency check failed.' }
 Write-Host "Offline environment ready: $environmentPath"

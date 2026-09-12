@@ -11,12 +11,10 @@ for folder in ('assets', 'third_party_licenses'):
         datas.append((str(root / folder), folder))
 if (root / 'requirements-lock.txt').is_file():
     datas.append((str(root / 'requirements-lock.txt'), '.'))
-for filename in ('使用说明.txt', '模型与数据说明.md', '示例_读取实验数据.py', 'README.md', '验收记录.md'):
+for filename in ('使用说明.txt', '模型与数据说明.md', '示例_读取实验数据.py', 'README.md', '验收记录-v2.1.md', '改造说明-v2.1.md'):
     if (root / filename).is_file():
         datas.append((str(root / filename), '.'))
 # Distribute only named, accepted classroom examples, never prototype records.
-if (root / 'examples' / 'default_result.npz').is_file():
-    datas.append((str(root / 'examples' / 'default_result.npz'), 'examples'))
 for experiment in ('tension', 'compression', 'torsion', 'bending', 'shear', 'buckling'):
     for shape in ('circle', 'rectangle'):
         for material in ('Fe', 'Al'):
@@ -32,7 +30,7 @@ for source_name in ('solver.py', 'axial_solver.py'):
 a = Analysis(
     [str(root / 'main.py')],
     pathex=[str(root)],
-    binaries=[],
+    binaries=[(str(root / 'tensile_lab' / '_native' / 'mechanics_core.dll'), 'tensile_lab/_native')],
     datas=datas,
     hiddenimports=['scipy.sparse.csgraph', 'scipy.sparse.linalg', 'llvmlite.binding'],
     hookspath=[],
