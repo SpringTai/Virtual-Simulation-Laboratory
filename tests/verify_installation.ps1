@@ -7,14 +7,20 @@ New-Item -ItemType Directory -Path $testRoot -Force | Out-Null
 & (Join-Path $package 'install.ps1') -Quiet -InstallDirectory $destination -NoShortcuts -NoRegistration
 $marker = Get-Content (Join-Path $destination 'installation.json') -Raw | ConvertFrom-Json
 if ($marker.installDirectory -ne [IO.Path]::GetFullPath($destination)) { throw 'Incorrect installed location.' }
+if ($marker.publisher -ne '云南数美汇云软件有限公司' -or $marker.version -ne '2.1.1') { throw 'Incorrect company or version.' }
 $report = Join-Path $testRoot 'selftest/report.json'
 New-Item -ItemType Directory -Path (Split-Path -Parent $report) -Force | Out-Null
 $process = Start-Process -FilePath (Join-Path $destination 'TensileLab.exe') -ArgumentList @('--self-test', ('"' + $report + '"')) -WindowStyle Hidden -Wait -PassThru
 if ($process.ExitCode -ne 0 -or -not (Get-Content $report -Raw | ConvertFrom-Json).ok) { throw 'Installed application selftest failed.' }
 $sentinel = Join-Path $destination 'user-experiment.txt'
 [IO.File]::WriteAllText($sentinel, 'preserve user experiment')
+$legacyLogo = Join-Path $destination '_internal/assets/logo.jpeg'
+[IO.File]::WriteAllText($legacyLogo, 'obsolete installer-owned branding fixture')
+$marker.files += '_internal/assets/logo.jpeg'
+$marker | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $destination 'installation.json') -Encoding UTF8
 & (Join-Path $package 'install.ps1') -Quiet -InstallDirectory $destination -NoShortcuts -NoRegistration
 if ([IO.File]::ReadAllText($sentinel) -ne 'preserve user experiment') { throw 'Update overwrote user data.' }
+if (Test-Path -LiteralPath $legacyLogo) { throw 'Upgrade retained obsolete branding.' }
 # Refuse nonempty unrelated destinations before any installation writes.
 $unrelated = Join-Path $testRoot 'unrelated'
 New-Item -ItemType Directory -Path $unrelated -Force | Out-Null

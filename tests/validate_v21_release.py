@@ -21,7 +21,7 @@ with zipfile.ZipFile(archive) as bundle:
         assert hashlib.sha256(bundle.read(name)).digest()==hashlib.sha256(original.read_bytes()).digest(),name
         checked+=1
     assert len([n for n in names if n.startswith('TensileLab/_internal/examples/') and n.endswith('.npz')])==24
-    assert not any(n.endswith('/验收记录.md') or n.endswith('/default_result.npz') for n in names)
+    assert not any(n.endswith('/验收记录.md') or n.endswith('/default_result.npz') or n.endswith('/logo.jpeg') or n.endswith('/lab.ico') for n in names)
 native=json.loads((out/'native-parity.json').read_text())
 frozen=json.loads((out/'frozen/report.json').read_text())
 visual=json.loads((out/'visual/report.json').read_text())
@@ -29,7 +29,7 @@ installed=[json.loads((out/'installed/installation-report.json').read_text(encod
 axial=json.loads((out/'axial/axial_validation.json').read_text(encoding='utf-8'))
 assert native['passed'] and frozen['ok'] and visual['passed'] and axial['passed']
 assert any(p['passed'] for p in installed)
-report=dict(passed=True,version='2.1.0',archive=str(archive),bytes=archive.stat().st_size,
+report=dict(passed=True,version='2.1.1',archive=str(archive),bytes=archive.stat().st_size,
             sha256=hashlib.file_digest(archive.open('rb'),'sha256').hexdigest(),verified_archive_files=checked,
             native_parity_combinations=len(native['calculations']),visual_states=visual['states'],
             frozen_calculations=len(frozen['calculations']),frozen_examples=len(frozen['examples']),
