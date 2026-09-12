@@ -12,11 +12,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 license_root = ROOT / 'third_party_licenses'
 license_root.mkdir(exist_ok=True)
-(ROOT / 'offline_packages').mkdir(exist_ok=True)
 packages = sorted(
     (dist.metadata['Name'], dist.version)
     for dist in importlib.metadata.distributions()
-    if dist.metadata['Name'].lower() != 'pip'
+    if dist.metadata['Name'].lower() not in ('pip', 'ziglang')
 )
 (ROOT / 'requirements-lock.txt').write_text(
     '# CPython 3.12 / Windows x64; all dependencies are cached in offline_packages.\n'
