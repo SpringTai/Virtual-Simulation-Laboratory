@@ -45,7 +45,14 @@ Get-ChildItem -LiteralPath $sourceDirectory -Force | ForEach-Object { Copy-Item 
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'uninstall.ps1') -Destination $installDirectory -Force
 $ownedFiles = @(Get-ChildItem -LiteralPath $sourceDirectory -Recurse -File | ForEach-Object { $_.FullName.Substring($sourceDirectory.Length+1) }) + @('uninstall.ps1')
 if ($previous.files) { $ownedFiles += $previous.files }
-@{applicationId='MechanicsVirtualLab.TensileLab'; version='2.1.0'; installDirectory=$installDirectory; files=@($ownedFiles | Sort-Object -Unique); installedAt=(Get-Date).ToString('o')} | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $marker -Encoding UTF8
+# Remove only obsolete branding assets recorded as owned by the previous installer.
+foreach ($obsolete in @('_internal/assets/logo.jpeg', '_internal/assets/lab.ico')) {
+    if (@($previous.files | Where-Object { $_ -is [string] } | ForEach-Object { $_.Replace('\','/') }) -contains $obsolete) {
+        $obsoletePath = Join-Path $installDirectory $obsolete
+        if (Test-Path -LiteralPath $obsoletePath -PathType Leaf) { Remove-Item -LiteralPath $obsoletePath -Force }
+    }
+}
+@{applicationId='MechanicsVirtualLab.TensileLab'; version='2.1.1'; publisher='云南数美汇云软件有限公司'; installDirectory=$installDirectory; files=@($ownedFiles | Sort-Object -Unique); installedAt=(Get-Date).ToString('o')} | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $marker -Encoding UTF8
 $executable = Join-Path $installDirectory 'TensileLab.exe'
 $label = ([char]0x529b).ToString() + [char]0x5b66 + [char]0x865a + [char]0x62df + [char]0x5b9e + [char]0x9a8c + [char]0x5ba4
 if (-not $NoShortcuts) {
@@ -60,7 +67,7 @@ if (-not $NoShortcuts) {
 }
 if (-not $NoRegistration) {
     New-Item -Path $key -Force | Out-Null
-    $entries = @{DisplayName=$label; DisplayVersion='2.1.0'; InstallLocation=$installDirectory; DisplayIcon=$executable;
+    $entries = @{DisplayName=$label; DisplayVersion='2.1.1'; Publisher='云南数美汇云软件有限公司'; InstallLocation=$installDirectory; DisplayIcon=$executable;
         UninstallString=('powershell.exe -NoProfile -ExecutionPolicy Bypass -File "' + (Join-Path $installDirectory 'uninstall.ps1') + '"')}
     foreach ($name in $entries.Keys) { New-ItemProperty -Path $key -Name $name -Value $entries[$name] -PropertyType String -Force | Out-Null }
     foreach ($name in @('NoModify','NoRepair')) { New-ItemProperty -Path $key -Name $name -Value 1 -PropertyType DWord -Force | Out-Null }
