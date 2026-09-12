@@ -156,7 +156,9 @@ class MainWindow(QMainWindow):
         self.field_combo=QComboBox();self.field_combo.setMinimumWidth(112);self.field_combo.setMaximumWidth(200);view_top.addWidget(self.field_combo);view.addLayout(view_top)
         self.specimen_view=SpecimenView();self.field_combo.currentTextChanged.connect(self.specimen_view.set_field);view.addWidget(self.specimen_view,1)
         opts=QHBoxLayout()
-        self.mesh_check=QCheckBox("显示网格");self.mesh_check.setChecked(True);self.mesh_check.toggled.connect(self.specimen_view.set_mesh_visible);opts.addWidget(self.mesh_check);opts.addStretch()
+        self.style_combo=QComboBox();self.style_combo.addItem("写实示意","realistic");self.style_combo.addItem("网格云图","mesh")
+        self.style_combo.currentIndexChanged.connect(self._visual_style_changed);opts.addWidget(self.style_combo)
+        self.mesh_check=QCheckBox("显示网格");self.mesh_check.setChecked(True);self.mesh_check.toggled.connect(self.specimen_view.set_mesh_visible);opts.addWidget(self.mesh_check);self.mesh_check.hide();opts.addStretch()
         self.magnify_label=QLabel("变形显示");self.magnify_label.setObjectName("hint");opts.addWidget(self.magnify_label)
         self.magnify_combo=QComboBox()
         for value in [1,5,20,50,100]:self.magnify_combo.addItem(f"{value}×",value)
@@ -378,6 +380,14 @@ class MainWindow(QMainWindow):
         self.magnify_label.setText("转角显示" if c.experiment=="torsion" else "变形显示")
         value=meta.get("default_magnification",1);idx=self.magnify_combo.findData(value)
         self.magnify_combo.setCurrentIndex(max(0,idx));self.magnify_combo.setEnabled(True)
+        self._visual_style_changed()
+
+    def _visual_style_changed(self):
+        style=self.style_combo.currentData()
+        self.specimen_view.set_visual_style(style)
+        mesh=style=='mesh'
+        self.mesh_check.setVisible(mesh);self.field_combo.setVisible(mesh)
+        self.magnify_label.setVisible(mesh);self.magnify_combo.setVisible(mesh)
 
     def _clear_results(self):
         self._pause();self.result=None;self._frames=[];self._current_index=0
@@ -428,6 +438,7 @@ class MainWindow(QMainWindow):
         if frame is not None:
             if not self._frames and frame.get("diagnostics"):self._configure_outputs(self._active_config,frame["diagnostics"])
             self._frames.append(frame);self._display_frame(len(self._frames)-1)
+            self.specimen_view.animation_progress=float(np.clip(fraction,0,1));self.specimen_view.update()
         self.progress_bar.setValue(round(np.clip(fraction,0,1)*1000));self.frame_label.setText(f"计算进度 {fraction:.0%} · {len(self._frames)} 个记录")
         if message:self.statusBar().showMessage(message)
 
@@ -487,6 +498,7 @@ class MainWindow(QMainWindow):
             values=np.asarray(frame.get("cell_eq_plastic_strain",[0]),float);allowed=not len(values) or float(values.max())<.02
             if not allowed:self.magnify_combo.setCurrentIndex(0)
             self.magnify_combo.setEnabled(allowed)
+        self.specimen_view.animation_progress=index/max(1,len(self._frames)-1)
         self.specimen_view.set_frame(frame)
         stage=str(frame.get("stage",EXPERIMENTS[self.experiment]+"加载"))
         caption="达到屈服 · 加载结束" if "首屈服" in stage else "临界前变形 · 加载结束" if "临界前" in stage and "停止" in stage else stage

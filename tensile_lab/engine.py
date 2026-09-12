@@ -60,7 +60,15 @@ def simulate(config: SimulationConfig, progress_callback=None, cancel_event=None
         from .structural_solver import simulate
         implementation = simulate
     try:
-        return decorate(implementation(config, progress_callback, cancel_event))
+        result = decorate(implementation(config, progress_callback, cancel_event))
+        from .native_backend import library
+        if config.experiment in ('torsion', 'bending', 'buckling'):
+            result.diagnostics['compute_backend'] = 'C++ assembly + SciPy solve' if library() is not None else 'Python/NumPy + SciPy'
+        elif config.experiment == 'shear':
+            result.diagnostics['compute_backend'] = 'Python/NumPy uniform shear'
+        elif config.section_shape == 'circle':
+            result.diagnostics['compute_backend'] = 'Python/Numba axisymmetric'
+        return result
     except Exception as exc:
         partial = getattr(exc, "partial_result", None)
         if partial is not None:

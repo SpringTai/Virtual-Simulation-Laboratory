@@ -64,6 +64,8 @@ def load_result(filename):
 
 def cache_path(config):
     body = json.dumps(config.to_dict(), sort_keys=True).encode("utf-8")
-    fingerprint = hashlib.sha256(b"mechanics-six-v2:" + body).hexdigest()[:24]
+    import os
+    backend = os.environ.get('MECHANICS_BACKEND', 'auto').encode('ascii')
+    fingerprint = hashlib.sha256(b"mechanics-six-v2.1-abi1:" + backend + body).hexdigest()[:24]
     base = Path(os.environ.get("LOCALAPPDATA", str(Path.home()))) / "MechanicsVirtualLab" / "cache"
     return base / (fingerprint + ".npz")

@@ -39,6 +39,11 @@ class SpecimenView(QWidget):
         self.config=None
         self.field,self.show_mesh,self.magnification="轴向应力",True,1.
         self._hit_cells=[]
+        self.visual_style = 'realistic'
+        self.animation_progress = 0.
+    def set_visual_style(self, style):
+        self.visual_style = style
+        self.update()
     def configure(self,config,metadata=None):
         self.config=config
         experiment=getattr(config,"experiment","tension");shape=getattr(config,"section_shape","circle")
@@ -101,6 +106,11 @@ class SpecimenView(QWidget):
         self._text(p,QRectF(left,h-27,length,24),f"{high:{formatter}} {unit}",size=8,alignment=Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignVCenter)
     def paintEvent(self,event):
         p=QPainter(self);p.setRenderHint(QPainter.RenderHint.Antialiasing);p.fillRect(self.rect(),QColor("#fbfcfd"));self._hit_cells=[]
+        if self.visual_style == 'realistic':
+            from .realistic_view import paint_realistic
+            paint_realistic(self, p)
+            p.end()
+            return
         w,h=self.width(),self.height();experiment=getattr(self.config,"experiment","tension");kind=self.meta.get("view_kind","axisymmetric")
         descriptions={"axisymmetric":"圆形截面 · 轴对称剖面","solid2d":"矩形截面 · 纵向剖面","rod":"矩形截面 · 纵向剖面","beam":"梁的侧面","buckling":"压杆的侧面","torsion":"扭转外观 · 按计算转角投影","shear":"剪切变形示意"}
         self._text(p,QRectF(14,3,w-28,22),descriptions.get(kind,"变形与受力"))
@@ -206,6 +216,9 @@ class SpecimenView(QWidget):
             self._text(p,QRectF(12,self.height()-91,self.width()-24,23),f"实际转角 {math.degrees(actual):.3f}° · 长度 {length:g} mm",size=8,alignment=Qt.AlignmentFlag.AlignCenter)
         return end
     def mouseMoveEvent(self,event):
+        if self.visual_style == 'realistic':
+            self.setToolTip('同类实验共用写实教学动画；切换“网格云图”查看计算变形和场值。')
+            return super().mouseMoveEvent(event)
         for polygon,index,value in reversed(self._hit_cells):
             if polygon.containsPoint(event.position(),Qt.FillRule.OddEvenFill):
                 unit=self.FIELDS.get(self.field,(None,""))[1];self.setToolTip(f"单元 {index+1}\n{self.field}：{value:.5g} {unit}\n计算与模型说明可在“实验说明”查看。");break

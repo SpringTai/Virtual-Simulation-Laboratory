@@ -17,6 +17,10 @@ def run_selftest(report_filename):
     try:
         from .presets import make_config, example_path, EXPERIMENTS
         from .engine import simulate
+        from .native_backend import library
+        native = library()
+        assert native is not None, 'Packaged C++ library is unavailable'
+        report['native_abi'] = native.mechanics_abi_version()
         from .storage import save_result, load_result
         from .export import export_result
         from .gui import MainWindow
@@ -56,6 +60,7 @@ def run_selftest(report_filename):
                 if experiment in ('tension', 'compression'):
                     config = replace(config, max_strain=.0005, imperfection=0.)
                 result = simulate(config)
+                report.setdefault('compute_backends', {})[f'{experiment}_{shape}'] = result.diagnostics.get('compute_backend')
                 last = result.frames[-1]
                 check = {'experiment': experiment, 'shape': shape, 'frames': len(result.frames)}
                 assert len(result.frames) >= 10

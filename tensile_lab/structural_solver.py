@@ -118,6 +118,14 @@ def _visual_mesh(length, depth, n, ny):
 
 
 def _line_stiffness(n, length, rigidity):
+    from .native_backend import matrices
+    native = matrices(n, length, rigidity, False)
+    if native is not None:
+        k, _ = native
+        solution = np.zeros(n+1)
+        load = np.zeros(n); load[-1] = 1.
+        solution[1:] = solve(k[1:, 1:], load, assume_a='pos')
+        return k, solution
     k = np.zeros((n+1, n+1))
     element = rigidity/(length/n)*np.array([[1., -1.], [-1., 1.]])
     for i in range(n):
@@ -130,6 +138,11 @@ def _line_stiffness(n, length, rigidity):
 
 
 def _beam_matrices(n, length, ei):
+    from .native_backend import matrices
+    native = matrices(n, length, ei, True)
+    if native is not None:
+        k, g = native
+        return k, g, np.setdiff1d(np.arange(len(k)), [0, 2*n])
     h = length/n
     kb = ei/h**3*np.array([
         [12, 6*h, -12, 6*h], [6*h, 4*h*h, -6*h, 2*h*h],

@@ -131,6 +131,9 @@ def _rod_advance(count, drive_step, dt, duration, maximum, hold,
 
 def _simulate_rectangular(config, progress_callback, cancel_event):
     validate_config(config)
+    from .native_backend import library, rod_advance
+    use_native = library() is not None
+    advance_kernel = rod_advance if use_native else _rod_advance
     width = float(getattr(config, "width_mm", 10.))
     height = float(getattr(config, "height_mm", 10.))
     if not (math.isfinite(width) and math.isfinite(height) and width > 0 and height > 0):
@@ -167,6 +170,7 @@ def _simulate_rectangular(config, progress_callback, cancel_event):
         note += " 压缩不启用损伤；端部无摩擦、忽略整体屈曲。"
     meta = axial_metadata(config, "solid2d", "矩形截面有限变形一维杆单元", note)
     meta.update(computation_dimension="1D", display_dimension="矩形侧视图",
+                compute_backend="C++ ABI 1" if use_native else "Python/Numba",
                 section_width_is_out_of_plane=True,
                 actual_section_area_formula="width_mm * height_mm")
     result = SimulationResult(config, reference, cells, diagnostics=dict(meta))
@@ -280,7 +284,7 @@ def _simulate_rectangular(config, progress_callback, cancel_event):
                 terminate("计算已取消，已保留最后有效帧。","cancelled")
             chunk=min(50 if damage.max()>.9 else 500,stop-start)
             old=start
-            internal,start,bad,ew,dw=_rod_advance(
+            internal,start,bad,ew,dw=advance_kernel(
                 chunk,start,dt,duration,direction*length*config.max_strain,hold,
                 x0,x,v,acc,mass,area0,dx,hp,ep,damage,he,stress,lateral,
                 force_e,old_length,work,damping if damp is None else damp,
