@@ -6,7 +6,7 @@ from pathlib import Path
 import json
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QLabel
 from PySide6.QtGui import QFont, QFontDatabase, QIcon
 from tensile_lab.gui import MainWindow
 from tensile_lab.presets import make_config, example_path
@@ -26,8 +26,9 @@ out.mkdir(parents=True, exist_ok=True)
 for width, height in ((1160, 680), (1280, 720), (1920, 1080)):
     window.resize(width, height)
     app.processEvents()
-    label = window.company_label
-    assert label.text() == '云南数美汇云软件有限公司'
+    assert not hasattr(window, 'company_label')
+    label = window.findChild(QLabel, 'title')
+    assert label is not None
     assert label.width() >= label.fontMetrics().horizontalAdvance(label.text())
     assert label.height() >= label.fontMetrics().height()
 for experiment in ('buckling', 'compression'):
@@ -40,5 +41,5 @@ for experiment in ('buckling', 'compression'):
     app.processEvents()
     assert window.grab().save(str(out / f'preview-{experiment}.png'))
 window.close()
-(out / 'report.json').write_text(json.dumps({'passed': True, 'company': '云南数美汇云软件有限公司', 'header_sizes': 3}, ensure_ascii=False, indent=2), encoding='utf-8')
+(out / 'report.json').write_text(json.dumps({'passed': True, 'company_label_removed': True, 'header_sizes': 3}, ensure_ascii=False, indent=2), encoding='utf-8')
 print('Branding verification passed')

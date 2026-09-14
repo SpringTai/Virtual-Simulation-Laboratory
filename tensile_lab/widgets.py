@@ -2,9 +2,11 @@
 from __future__ import annotations
 import math
 import numpy as np
-from PySide6.QtCore import Qt, QPointF, QRectF
+from PySide6.QtCore import Qt, QPointF, QRectF, QUrl
 from PySide6.QtGui import QColor, QPainter, QPen, QPolygonF, QFont, QLinearGradient
 from PySide6.QtWidgets import QWidget, QFrame, QLabel, QVBoxLayout
+from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
+from PySide6.QtMultimediaWidgets import QVideoWidget
 
 COLORS = [QColor(c) for c in ("#234b88", "#287ab1", "#3fb6ba", "#b9d968", "#f2c35c", "#de654b")]
 def field_color(value, low, high):
@@ -12,6 +14,27 @@ def field_color(value, low, high):
     index=min(int(position),len(COLORS)-2)
     a,b,f=COLORS[index],COLORS[index+1],position-index
     return QColor(round(a.red()*(1-f)+b.red()*f),round(a.green()*(1-f)+b.green()*f),round(a.blue()*(1-f)+b.blue()*f))
+
+class VideoAnimation(QWidget):
+    """Packaged MP4 view with its original audio track enabled."""
+    FRACTURE_MS = 8300
+    def __init__(self, video_path, parent=None):
+        super().__init__(parent)
+        self.setMinimumSize(285,208)
+        self._pending_position=0
+        self.video=QVideoWidget(self);self.video.setStyleSheet("background: #050505;")
+        layout=QVBoxLayout(self);layout.setContentsMargins(0,0,0,0);layout.addWidget(self.video)
+        self.audio=QAudioOutput(self);self.audio.setMuted(False);self.audio.setVolume(1.)
+        self.player=QMediaPlayer(self);self.player.setAudioOutput(self.audio);self.player.setVideoOutput(self.video)
+        self.player.durationChanged.connect(lambda _duration:self.seek_ms(self._pending_position))
+        self.player.setSource(QUrl.fromLocalFile(str(video_path)))
+    def is_playing(self):return self.player.playbackState()==QMediaPlayer.PlaybackState.PlayingState
+    def seek_ms(self, position):
+        self._pending_position=max(0,round(float(position)))
+        if self.player.duration()>0:self.player.setPosition(round(float(np.clip(self._pending_position,0,self.player.duration()))))
+    def play(self):self.player.play()
+    def pause(self):self.player.pause()
+    def set_playback_rate(self, rate):self.player.setPlaybackRate(float(rate))
 
 class MetricCard(QFrame):
     def __init__(self,title,unit,parent=None):

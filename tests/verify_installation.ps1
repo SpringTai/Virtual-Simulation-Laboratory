@@ -7,7 +7,7 @@ New-Item -ItemType Directory -Path $testRoot -Force | Out-Null
 & (Join-Path $package 'install.ps1') -Quiet -InstallDirectory $destination -NoShortcuts -NoRegistration
 $marker = Get-Content (Join-Path $destination 'installation.json') -Raw | ConvertFrom-Json
 if ($marker.installDirectory -ne [IO.Path]::GetFullPath($destination)) { throw 'Incorrect installed location.' }
-if ($marker.publisher -ne '云南数美汇云软件有限公司' -or $marker.version -ne '2.1.1') { throw 'Incorrect company or version.' }
+if ($marker.PSObject.Properties.Name -contains 'publisher' -or $marker.version -ne '2.1.1') { throw 'Unexpected publisher or version.' }
 $report = Join-Path $testRoot 'selftest/report.json'
 New-Item -ItemType Directory -Path (Split-Path -Parent $report) -Force | Out-Null
 $process = Start-Process -FilePath (Join-Path $destination 'TensileLab.exe') -ArgumentList @('--self-test', ('"' + $report + '"')) -WindowStyle Hidden -Wait -PassThru

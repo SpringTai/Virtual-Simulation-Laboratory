@@ -13,10 +13,11 @@ from PySide6.QtWidgets import (
     QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QLabel, QFrame, QPushButton,
     QComboBox, QDoubleSpinBox, QSpinBox, QScrollArea, QToolButton,
     QCheckBox, QSlider, QProgressBar, QFileDialog, QMessageBox, QSplitter, QAbstractSpinBox,
+    QStackedWidget,
 )
 
 from .models import SimulationConfig, SimulationResult
-from .widgets import MetricCard, SpecimenView
+from .widgets import MetricCard, SpecimenView, VideoAnimation
 
 
 STYLE = """
@@ -129,8 +130,6 @@ class MainWindow(QMainWindow):
         head.addWidget(self.logo_label)
         branding=QVBoxLayout();branding.setSpacing(2)
         title=QLabel("虚拟仿真实验室");title.setObjectName("title");branding.addWidget(title)
-        self.company_label=QLabel("云南数美汇云软件有限公司")
-        self.company_label.setObjectName("subtitle");branding.addWidget(self.company_label)
         head.addLayout(branding);head.addStretch()
         root.addWidget(header)
         nav=QHBoxLayout();nav.setContentsMargins(18,3,18,3);nav.setSpacing(3)
@@ -158,9 +157,14 @@ class MainWindow(QMainWindow):
         view=QVBoxLayout(view_panel);view.setContentsMargins(12,9,12,7);view.setSpacing(5)
         view_top=QHBoxLayout();label=QLabel("试样与受力");label.setObjectName("sectionTitle");view_top.addWidget(label);view_top.addStretch()
         self.field_combo=QComboBox();self.field_combo.setMinimumWidth(112);self.field_combo.setMaximumWidth(200);view_top.addWidget(self.field_combo);view.addLayout(view_top)
-        self.specimen_view=SpecimenView();self.field_combo.currentTextChanged.connect(self.specimen_view.set_field);view.addWidget(self.specimen_view,1)
+        self.visual_stack=QStackedWidget()
+        self.video_view=VideoAnimation(self._resource_root()/"assets"/"拉伸.mp4")
+        self.video_view.player.playbackStateChanged.connect(self._video_state_changed)
+        self.specimen_view=SpecimenView();self.specimen_view.set_visual_style("mesh")
+        self.visual_stack.addWidget(self.video_view);self.visual_stack.addWidget(self.specimen_view)
+        self.field_combo.currentTextChanged.connect(self.specimen_view.set_field);view.addWidget(self.visual_stack,1)
         opts=QHBoxLayout()
-        self.style_combo=QComboBox();self.style_combo.addItem("写实示意","realistic");self.style_combo.addItem("网格云图","mesh")
+        self.style_combo=QComboBox();self.style_combo.addItem("真实动画","realistic");self.style_combo.addItem("网格云图","mesh")
         self.style_combo.currentIndexChanged.connect(self._visual_style_changed);opts.addWidget(self.style_combo)
         self.mesh_check=QCheckBox("显示网格");self.mesh_check.setChecked(True);self.mesh_check.toggled.connect(self.specimen_view.set_mesh_visible);opts.addWidget(self.mesh_check);self.mesh_check.hide();opts.addStretch()
         self.magnify_label=QLabel("变形显示");self.magnify_label.setObjectName("hint");opts.addWidget(self.magnify_label)
@@ -388,10 +392,26 @@ class MainWindow(QMainWindow):
 
     def _visual_style_changed(self):
         style=self.style_combo.currentData()
-        self.specimen_view.set_visual_style(style)
         mesh=style=='mesh'
+        self.visual_stack.setCurrentWidget(self.specimen_view if mesh else self.video_view)
+        if mesh:self.video_view.pause()
+        elif self._play_timer.isActive():self.video_view.seek_ms(self._video_position_for_index(self._current_index));self.video_view.play()
+        else:self.video_view.seek_ms(self._video_position_for_index(self._current_index))
         self.mesh_check.setVisible(mesh);self.field_combo.setVisible(mesh)
         self.magnify_label.setVisible(mesh);self.magnify_combo.setVisible(mesh)
+
+    def _video_position_for_index(self,index):
+        if not self._frames:return 0
+        fracture_index=len(self._frames)-1
+        for i,frame in enumerate(self._frames):
+            active=frame.get("cell_active")
+            if active is not None and not np.asarray(active,bool).all():
+                fracture_index=i;break
+        return VideoAnimation.FRACTURE_MS*min(max(index,0),fracture_index)/max(1,fracture_index)
+
+    def _video_state_changed(self,_state):
+        if hasattr(self,"play_button") and not self.video_view.is_playing() and not self._play_timer.isActive():
+            self.play_button.setText("播放")
 
     def _clear_results(self):
         self._pause();self.result=None;self._frames=[];self._current_index=0
@@ -442,7 +462,8 @@ class MainWindow(QMainWindow):
         if frame is not None:
             if not self._frames and frame.get("diagnostics"):self._configure_outputs(self._active_config,frame["diagnostics"])
             self._frames.append(frame);self._display_frame(len(self._frames)-1)
-            self.specimen_view.animation_progress=float(np.clip(fraction,0,1));self.specimen_view.update()
+            progress=float(np.clip(fraction,0,1));self.specimen_view.animation_progress=progress;self.specimen_view.update()
+            self.video_view.seek_ms(progress*VideoAnimation.FRACTURE_MS)
         self.progress_bar.setValue(round(np.clip(fraction,0,1)*1000));self.frame_label.setText(f"计算进度 {fraction:.0%} · {len(self._frames)} 个记录")
         if message:self.statusBar().showMessage(message)
 
@@ -503,6 +524,7 @@ class MainWindow(QMainWindow):
             if not allowed:self.magnify_combo.setCurrentIndex(0)
             self.magnify_combo.setEnabled(allowed)
         self.specimen_view.animation_progress=index/max(1,len(self._frames)-1)
+        if not self.video_view.is_playing():self.video_view.seek_ms(self._video_position_for_index(index))
         self.specimen_view.set_frame(frame)
         stage=str(frame.get("stage",EXPERIMENTS[self.experiment]+"加载"))
         caption="达到屈服 · 加载结束" if "首屈服" in stage else "临界前变形 · 加载结束" if "临界前" in stage and "停止" in stage else stage
@@ -527,16 +549,29 @@ class MainWindow(QMainWindow):
         if not self._calculating:self._display_frame(index)
     def toggle_playback(self):
         if self._calculating or not self._frames:return
-        if self._play_timer.isActive():self._pause()
+        if self._play_timer.isActive() or self.video_view.is_playing():self._pause()
         else:
             if self._current_index>=len(self._frames)-1:self.timeline.setValue(0);self._display_frame(0)
-            self._update_play_speed();self._play_timer.start();self.play_button.setText("暂停")
-    def _update_play_speed(self):self._play_timer.setInterval([180,90,45][self.speed_combo.currentIndex()])
+            self._update_play_speed();self._play_timer.start()
+            if self.style_combo.currentData()=="realistic":self.video_view.play()
+            self.play_button.setText("暂停")
+    def _update_play_speed(self):
+        rate=[.5,1.,2.][self.speed_combo.currentIndex()]
+        fracture_index=max(1,len(self._frames)-1)
+        if self._frames:
+            for i,frame in enumerate(self._frames):
+                active=frame.get("cell_active")
+                if active is not None and not np.asarray(active,bool).all():fracture_index=max(1,i);break
+        self._play_timer.setInterval(max(20,round(VideoAnimation.FRACTURE_MS/fracture_index/rate)))
+        self.video_view.set_playback_rate(rate)
     def _pause(self):
         self._play_timer.stop()
+        if hasattr(self,"video_view"):self.video_view.pause()
         if hasattr(self,"play_button"):self.play_button.setText("播放")
     def _advance(self):
-        if self._current_index>=len(self._frames)-1:self._pause()
+        if self._current_index>=len(self._frames)-1:
+            self._play_timer.stop()
+            if self.style_combo.currentData()!="realistic" or not self.video_view.is_playing():self._pause()
         else:self.timeline.setValue(self._current_index+1)
     def _step_once(self):
         self._pause()
@@ -605,7 +640,7 @@ class MainWindow(QMainWindow):
         name=meta.get("model_name",EXPERIMENTS[self.experiment]+"实验")
         note=meta.get("model_note",default_notes[self.experiment])
         material_note=meta.get("material_note","Fe、Al 使用教学代表参数，不对应经标定的具体牌号。")
-        QMessageBox.information(self,EXPERIMENTS[self.experiment]+" · 实验说明",f"{name}\n\n{note}\n\n{material_note}\n\n动画、曲线与导出使用同一份计算数据。放大仅改变显示，数值读数及导出保持实际值。")
+        QMessageBox.information(self,EXPERIMENTS[self.experiment]+" · 实验说明",f"{name}\n\n{note}\n\n{material_note}\n\n真实动画为带原声的拉伸试验视频参考；曲线、网格云图与导出使用同一份计算数据。放大仅改变显示，数值读数及导出保持实际值。")
     def closeEvent(self,event):
         self._pause()
         if self._worker is not None and self._worker.isRunning():

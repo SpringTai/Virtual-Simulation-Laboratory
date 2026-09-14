@@ -44,6 +44,8 @@ manifest = {
 )
 for dist in importlib.metadata.distributions():
     name = dist.metadata['Name']
+    if name.lower() == 'pip':
+        continue
     for item in dist.files or ():
         lowered = str(item).lower()
         if ('license' in lowered or 'copying' in lowered or 'notice' in lowered) and not lowered.endswith(('.py', '.pyc')):

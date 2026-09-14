@@ -38,7 +38,8 @@ for size in [(1280,720),(1920,1080)]:
             for progress in (0,.75,1):
                 index=round(progress*(len(result.frames)-1));window.timeline.setValue(index);app.processEvents()
                 assert window._current_index==index
-                assert window.specimen_view.visual_style==style
+                assert window.visual_stack.currentWidget() is (window.specimen_view if style=='mesh' else window.video_view)
+                assert window.specimen_view.visual_style=='mesh'
                 assert window.field_combo.isVisible()==(style=='mesh')
                 if progress in (0,.75,1):
                     assert window.grab().save(str(out/f'{experiment}_{style}_{size[0]}_{progress}.png'))

@@ -4,6 +4,7 @@ scipy==1.15.3
 numba==0.61.2
 felupe==11.0.0
 PySide6-Essentials==6.9.3
+PySide6-Addons==6.9.3
 shiboken6==6.9.3
 pyqtgraph==0.13.7
 pyinstaller==6.16.0

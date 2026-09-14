@@ -1,4 +1,5 @@
 # CPython 3.12 / Windows x64; all dependencies are cached in offline_packages.
+PySide6_Addons==6.9.3
 PySide6_Essentials==6.9.3
 altgraph==0.17.4
 felupe==11.0.0

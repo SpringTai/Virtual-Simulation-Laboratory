@@ -1,7 +1,5 @@
 # 虚拟仿真实验室 · 2.1
 
-公司：**云南数美汇云软件有限公司** · [公司官网](https://ynsmhy.com/)
-
 当前版本：2.1.1。
 
 A virtual simulation laboratory designed for teaching mechanics of materials, with a Python desktop platform and a C++ finite-element core.
@@ -17,8 +15,8 @@ A virtual simulation laboratory designed for teaching mechanics of materials, wi
 ## 本版更新
 
 - Python 负责界面、实验调度和数据处理；C++ 承担矩形轴向时间步、材料更新及部分结构矩阵组装。
-- “写实示意 / 网格云图”可即时切换。不同实验使用各自标准试样的真实长径比：压杆失稳为60∶1细长杆，压缩为2∶1短粗试样。同类实验调整尺寸时仍共用其参考动画。
-- 写实模式加入金属表面、颈缩、裂纹、褶皱等教学视觉细节；网格模式保留真实计算位移和场值。
+- “真实动画 / 网格云图”可即时切换。真实动画使用随安装包提供的 `拉伸.mp4`，并保留原始声音；网格模式保留真实计算位移和场值。
+- 视频约 8.3 秒的断裂节点与网格记录的断裂帧对齐，慢放、正常和快放时画面与声音同步变速。
 - 安装目录可选，更新与卸载保留用户自行导出的数据。
 - 已移除旧版文件、原型数据及旧说明。未增加混凝土或土力学实验。
 
@@ -26,7 +24,7 @@ A virtual simulation laboratory designed for teaching mechanics of materials, wi
 
 ![压缩写实示意](assets/preview-compression.png)
 
-写实动画是2.5D教学示意，裂纹和褶皱不是数值预测；曲线和读数始终来自实际计算。当前矩形轴向小模型已有 Numba 加速，本轮 C++ 实现尚未整体超过 Numba，不宣称全程序提速。
+真实动画是拉伸试验视频参考；曲线、读数和网格云图始终来自实际计算。当前矩形轴向小模型已有 Numba 加速，本轮 C++ 实现尚未整体超过 Numba，不宣称全程序提速。
 
 ## 从源码运行
 

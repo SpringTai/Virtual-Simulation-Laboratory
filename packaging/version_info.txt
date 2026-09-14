@@ -6,7 +6,6 @@ VSVersionInfo(
     StringFileInfo([
       StringTable('080404b0', [
         StringStruct('FileDescription', '力学虚拟实验室：六类材料力学实验'),
-        StringStruct('CompanyName', '云南数美汇云软件有限公司'),
         StringStruct('FileVersion', '2.1.1.0'),
         StringStruct('InternalName', 'TensileLab'),
         StringStruct('OriginalFilename', 'TensileLab.exe'),

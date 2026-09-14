@@ -12,7 +12,7 @@ icon_file = Path(CONF['workpath']) / 'lab-neutral.ico'
 icon_file.parent.mkdir(parents=True, exist_ok=True)
 icon_file.write_bytes(struct.pack('<HHH', 0, 1, 1) + struct.pack('<BBBBHHII', 0, 0, 0, 0, 1, 32, len(icon_png), 22) + icon_png)
 datas = []
-for package in ('numpy', 'scipy', 'numba', 'llvmlite', 'felupe', 'PySide6-Essentials', 'shiboken6', 'pyqtgraph'):
+for package in ('numpy', 'scipy', 'numba', 'llvmlite', 'felupe', 'PySide6-Essentials', 'PySide6-Addons', 'shiboken6', 'pyqtgraph'):
     datas += copy_metadata(package)
 for folder in ('assets', 'third_party_licenses'):
     if (root / folder).is_dir():
@@ -40,7 +40,8 @@ a = Analysis(
     pathex=[str(root)],
     binaries=[(str(root / 'tensile_lab' / '_native' / 'mechanics_core.dll'), 'tensile_lab/_native')],
     datas=datas,
-    hiddenimports=['scipy.sparse.csgraph', 'scipy.sparse.linalg', 'llvmlite.binding'],
+    hiddenimports=['scipy.sparse.csgraph', 'scipy.sparse.linalg', 'llvmlite.binding',
+                   'PySide6.QtMultimedia', 'PySide6.QtMultimediaWidgets'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

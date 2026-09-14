@@ -14,7 +14,6 @@ def main():
     from PySide6.QtGui import QFont, QFontDatabase, QIcon
     app = QApplication(sys.argv)
     app.setApplicationName("虚拟仿真实验室")
-    app.setOrganizationName("云南数美汇云软件有限公司")
     if not QFontDatabase.families():
         font_directory = Path(os.environ.get("WINDIR", "C:/Windows")) / "Fonts"
         for name in ("msyh.ttc", "msyhbd.ttc", "arial.ttf"):
